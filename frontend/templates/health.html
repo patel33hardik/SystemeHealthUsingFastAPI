@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Health Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: #fff;
+        }
+
+        #health-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .metric-container {
+            background-color: #333;
+            border-radius: 8px;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        h2 {
+            color: #149174;
+        }
+
+        p {
+            margin: 0;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #444;
+            text-align: left;
+            color: #fff;
+        }
+
+        th {
+            background-color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="health-container">
+        <div class="metric-container">
+            <h2>CPU Usage</h2>
+            <p id="cpu-usage"></p>
+        </div>
+
+        <div class="metric-container">
+            <h2>Memory Usage</h2>
+            <p id="memory-usage"></p>
+        </div>
+
+        <div class="metric-container">
+            <h2>Disk Usage</h2>
+            <p id="disk-usage"></p>
+        </div>
+
+        <div class="metric-container">
+            <h2>Network Usage</h2>
+            <table>
+                <tr>
+                    <th>Bytes Sent</th>
+                    <th>Bytes Received</th>
+                </tr>
+                <tr>
+                    <td id="bytes-sent"></td>
+                    <td id="bytes-received"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="metric-container">
+            <h2>Battery Information</h2>
+            <p id="battery-percent"></p>
+            <p id="power-plugged"></p>
+        </div>
+
+        <div class="metric-container">
+            <h2>Sensor Information</h2>
+            <pre id="sensor-info"></pre>
+        </div>
+
+        <div class="metric-container">
+            <h2>System Uptime</h2>
+            <p id="uptime"></p>
+        </div>
+
+        <div class="metric-container">
+            <h2>Disk Partitions</h2>
+            <table id="disk-partitions">
+                <!-- Dynamic content will be added here -->
+            </table>
+        </div>
+
+        <div class="metric-container">
+            <h2>Swap Memory Usage</h2>
+            <p id="swap-memory-total"></p>
+            <p id="swap-memory-used"></p>
+            <p id="swap-memory-free"></p>
+        </div>
+
+        <div class="metric-container">
+            <h2>CPU Cores</h2>
+            <p id="cpu-cores-logical"></p>
+            <p id="cpu-cores-physical"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const baseUrl = window.location.origin;
+            const apiUrl = `${baseUrl}/health`;
+            fetch(`${baseUrl}/health`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update the HTML elements with the retrieved data
+                    document.getElementById('cpu-usage').innerText = `CPU Usage: ${data.cpu_usage}%`;
+                    document.getElementById('memory-usage').innerText = `Memory Usage: ${data.memory_usage}%`;
+                    document.getElementById('disk-usage').innerText = `Disk Usage: ${data.disk_usage}%`;
+                    document.getElementById('bytes-sent').innerText = `Bytes Sent: ${data.network.bytes_sent}`;
+                    document.getElementById('bytes-received').innerText = `Bytes Received: ${data.network.bytes_received}`;
+                    document.getElementById('battery-percent').innerText = `Battery Percent: ${data.battery.percent || 'N/A'}`;
+                    document.getElementById('power-plugged').innerText = `Power Plugged: ${data.battery.power_plugged || 'N/A'}`;
+                    document.getElementById('sensor-info').innerText = `Sensor Information:\n${JSON.stringify(data.sensors, null, 2)}`;
+                    document.getElementById('uptime').innerText = `System Uptime: ${new Date(data.uptime * 1000).toLocaleString()}`;
+                    document.getElementById('swap-memory-total').innerText = `Swap Memory Total: ${data.swap_memory.total}`;
+                    document.getElementById('swap-memory-used').innerText = `Swap Memory Used: ${data.swap_memory.used}`;
+                    document.getElementById('swap-memory-free').innerText = `Swap Memory Free: ${data.swap_memory.free}`;
+                    document.getElementById('cpu-cores-logical').innerText = `Logical CPU Cores: ${data.cpu_cores.logical}`;
+                    document.getElementById('cpu-cores-physical').innerText = `Physical CPU Cores: ${data.cpu_cores.physical}`;
+
+                    // Add dynamic content for disk partitions
+                    const diskPartitionsTable = document.getElementById('disk-partitions');
+                    for (const [partition, info] of Object.entries(data.disk_partitions)) {
+                        const row = diskPartitionsTable.insertRow();
+                        const cell1 = row.insertCell(0);
+                        const cell2 = row.insertCell(1);
+                        const cell3 = row.insertCell(2);
+                        cell1.innerText = `Partition ${partition}`;
+                        cell2.innerText = `Total: ${info.total || 'N/A'}`;
+                        cell3.innerText = `Free: ${info.free || 'N/A'}`;
+                    }
+                })
+                .catch(error => console.error('Error fetching health data:', error));
+        });
+    </script>
+</body>
+
+</html>
